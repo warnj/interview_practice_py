@@ -1,5 +1,6 @@
 from collections import deque
-from typing import Optional
+from typing import Optional, List
+
 
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):
@@ -47,3 +48,92 @@ def __traverse_DFS(self, left_child, right_child, level):
         right_child.val = temp
     self.__traverse_DFS(left_child.left, right_child.right, level + 1)
     self.__traverse_DFS(left_child.right, right_child.left, level + 1)
+
+# https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree
+def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+    # find p and q
+    # if p and q are found and lca not None, this node is LCA and return it
+    # if LCA found, return it
+    if not root:
+        return None
+    if root == p or root == q:
+        return root
+    l = self.lowestCommonAncestor(root.left, p, q)
+    r = self.lowestCommonAncestor(root.right, p, q)
+    if l and r:
+        return root  # this node is the LCA
+    if l:
+        return l
+    if r:
+        return r
+    return None
+
+# https://leetcode.com/problems/binary-tree-right-side-view
+# level order traversal with O(n) time and space
+def rightSideView(self, root: Optional[TreeNode]) -> List[int]:
+    if not root:
+        return []
+    wl = deque()
+    wl.append(root)
+    result = []
+    while wl:
+        levelSize = len(wl)
+        for i in range(levelSize):
+            node = wl.popleft()
+            if i == levelSize - 1:
+                result.append(node.val)
+            if node.left:
+                wl.append(node.left)
+            if node.right:
+                wl.append(node.right)
+    return result
+# O(n) time and space
+def rightSideViewRecursive(self, root: TreeNode) -> list[int]:
+    ans = []
+    def dfs(node, level):
+        if node:
+            if len(ans) < level:
+                ans.append(node.val)
+            dfs(node.right, level + 1)  # right first
+            dfs(node.left, level + 1)  # then left
+    dfs(root, 1)
+    return ans
+
+# https://leetcode.com/problems/diameter-of-binary-tree/
+# O(n) time and space (worst case linked list on call stack)
+class SolutionDiameter:
+    def __init__(self):
+        self.diameter = 0
+    def diameterOfBinaryTree(self, root: TreeNode) -> int:
+        def depth(node):
+            left = depth(node.left) if node.left else 0
+            right = depth(node.right) if node.right else 0
+            self.diameter = max(self.diameter, left + right)
+            return 1 + max(left, right)
+        depth(root)
+        return self.diameter
+
+# https://leetcode.com/problems/sum-root-to-leaf-numbers
+class SolutionSumRoot:
+    def __init__(self):
+        self.total = 0
+    def sumNumbers(self, root: Optional[TreeNode]) -> int:
+        def sumNums(node: Optional[TreeNode], num: str):
+            if not node.left and not node.right:  # leaf node
+                self.total += int(num + str(node.val))
+            else:
+                if node.left:
+                    sumNums(node.left, num + str(node.val))
+                if node.right:
+                    sumNums(node.right, num + str(node.val))
+        sumNums(root, '')
+        return self.total
+def sumNumbers(self, root: Optional[TreeNode]) -> int:
+    def sumNums(node: Optional[TreeNode], num: int):
+        if not node:
+            return 0
+        if not node.left and not node.right:  # leaf node
+            return num * 10 + node.val
+        else:
+            return sumNums(node.left, num * 10 + node.val) + sumNums(node.right, num * 10 + node.val)
+    return sumNums(root, 0)

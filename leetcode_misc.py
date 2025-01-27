@@ -1,8 +1,7 @@
 import heapq
 from collections import deque, Counter
+import random
 from typing import List, Optional
-
-
 
 
 # https://leetcode.com/problems/find-score-of-an-array-after-marking-all-elements
@@ -308,9 +307,6 @@ def maxChunksToSorted(self, arr: List[int]) -> int:
     return chunks
 
 
-
-
-
 # https://leetcode.com/problems/merge-intervals
 # O(nlogn) time O(n) space (python sort uses Timsort worstcase O(n))
 def merge(self, intervals: List[List[int]]) -> List[List[int]]:
@@ -333,3 +329,69 @@ def merge(self, intervals: List[List[int]]) -> List[List[int]]:
     return result
 
 
+# https://leetcode.com/problems/random-pick-with-weight/
+class RandomPickWeighted:
+    # O(n) time and O(n) extra space
+    def __init__(self, w: List[int]):
+        self.sums = w[:]
+        for i in range(1, len(w)):
+            self.sums[i] += self.sums[i-1]  # i.e. {2, 5, 3, 4} => {2, 7, 10, 14}
+    # O(logn) time and O(1) extra space
+    def pickIndex(self) -> int:
+        r = random.randint(1, self.sums[-1])
+        # r in [1,2] return 0
+        # r in [3,7] return 1
+        # r in [8,10] return 2
+        # r in [11,14] return 3
+        lo = 0
+        hi = len(self.sums)-1
+        while lo < hi:
+            mid = lo + (hi-lo) // 2
+            prev = self.sums[mid-1] if mid-1 >= 0 else 0
+            if prev < r <= self.sums[mid]:
+                return mid
+            if r > self.sums[mid]:
+                lo = mid+1
+            else:
+                hi = mid-1
+        return lo
+class RandomPickWeightedBad:
+    # [1,3]
+    # 1 -> 0
+    # 2 -> 1
+    # 3 -> 1
+    # 4 -> 1
+    # O(n) time and O(1) extra space
+    def __init__(self, w: List[int]):
+        self.sum = sum(w)
+        self.w = w
+    # O(n) time and O(1) extra space
+    def pickIndex(self) -> int:
+        r = random.randint(1, self.sum)
+        i = -1
+        while r > 0:
+            i += 1
+            r -= self.w[i]
+        return i
+
+# https://leetcode.com/problems/powx-n/
+# O(n) time and O(1) space
+def myPowOriginal(self, x: float, n: int) -> float:
+    # return x ** n
+    r = 1
+    for i in range(abs(n)):
+        r *= x
+    if n < 0:
+        return 1 / r
+    return r
+# O(log n) time and space
+def myPow(self, x: float, n: int) -> float:
+    def function(base, exponent):
+        if exponent == 0:
+            return 1
+        elif exponent % 2 == 0:
+            return function(base * base, exponent // 2) # break the exponent in half with multiplication
+        else:
+            return base * function(base * base, (exponent - 1) // 2) # reduce the exponent by 1 with extra mulitplication and then apply the double multiplication from even case
+    f = function(x, abs(n))
+    return f if n >= 0 else 1 / f
