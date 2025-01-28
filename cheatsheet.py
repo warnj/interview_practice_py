@@ -15,6 +15,12 @@ print('hero' in 'superhero')
 'hi there'.rfind('e')
 list("abcd")  # string to list (can also convert to tuple)
 
+# Search
+import bisect
+bisect.bisect_left([1,4,7,9], 4) # binary search - returns first index where x would be inserted to keep sorted order
+[1, 2, 3, 4].index(3)  # returns the first index of 3 (2 in this case) or ValueError if not found
+found = 3 in [1, 2, 3, 4]
+
 # Numbers
 tiny = float('-inf')
 huge = float('inf')
@@ -47,9 +53,11 @@ deepCopy = copy.deepcopy(array)
 for i, n in enumerate([9,8,7,6]):
     print(f"Index: {i}, Value: {n}")
 array.extend([5,6,7])  # add all elements to array
+reversed([1,2,3])
+
+# Sort
 sorted_lists = sorted([[2,3],[9,8,7],[4,5,6]], key=lambda x: x[0])  # sort by the first element
 [[2,3],[9,8,7],[4,5,6]].sort(key=lambda x: x[0], reverse=True)  # sort by the first element, order in reverse
-reversed([1,2,3])
 
 # 2-D Arrays
 x, y = 4, 5
