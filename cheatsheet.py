@@ -4,7 +4,7 @@
 ord('a')  # unicode code ordinal = 97
 chr(97)  # character from the ascii/unicode = 'a'
 
-# String
+# String (immutable)
 'ABC'.lower()  # lowercase
 "hi there".split()  # split on whitespace or optional delimiter param
 "hi there".count("h")  # count substring occurences
@@ -32,10 +32,16 @@ for i in range(start=0, stop=2, step=1):  # i=start; i<stop; i+=step
     break  # exits the innermost loop only
     continue  # continues the innermost loop
 
-# List (closest thing to array)
+# Tuple (immutable)
+sort([(1,3),(1,2)])  # [(1,2),(1,3)] naturally ordered by breaking ties with next item
+tuple([1,2,3])  # list to tuple (also works with set)
+list((1,2,3)) # tuple to list
+
+# List (mutable, closest thing to array)
 array = [0] * 10  # 10 zeros
 arrayWithoutLast4 = array[:-4]
 shallowCopy = list(array)
+newList = [[1] + [2,3,4]]
 import copy
 deepCopy = copy.deepcopy(array)
 for i, n in enumerate([9,8,7,6]):
@@ -44,8 +50,6 @@ array.extend([5,6,7])  # add all elements to array
 sorted_lists = sorted([[2,3],[9,8,7],[4,5,6]], key=lambda x: x[0])  # sort by the first element
 [[2,3],[9,8,7],[4,5,6]].sort(key=lambda x: x[0], reverse=True)  # sort by the first element, order in reverse
 reversed([1,2,3])
-tuple([1,2,3])  # list to tuple (also works with set)
-list((1,2,3)) # tuple to list
 
 # 2-D Arrays
 x, y = 4, 5
