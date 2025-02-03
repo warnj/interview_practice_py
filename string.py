@@ -182,7 +182,31 @@ def longestPalindrome(self, s: str) -> str:
             result = e
     return result
 
-# https://leetcode.com/problems/unique-length-3-palindromic-subsequences
+# https://leetcode.com/problems/palindromic-substrings
+# O(n^2) time and O(1) space
+def countSubstrings(self, s: str) -> int:
+    def palindromeCountOdd(s, i):
+        count = 1
+        lo = i - 1
+        hi = i + 1
+        while lo >= 0 and hi < len(s) and s[lo] == s[hi]:
+            count += 1
+            lo -= 1
+            hi += 1
+        return count
+    def palindromeCountEven(s, lo, hi):
+        count = 0
+        while lo >= 0 and hi < len(s) and s[lo] == s[hi]:
+            count += 1
+            lo -= 1
+            hi += 1
+        return count
+    result = 1
+    for i in range(1, len(s)):  # check possible centers
+        result += palindromeCountOdd(s, i) + palindromeCountEven(s, i - 1, i)
+    return result
+
+    # https://leetcode.com/problems/unique-length-3-palindromic-subsequences
 # O(26*n) time and O(26) space
 def countPalindromicSubsequence(self, s: str) -> int:
     r = 0
