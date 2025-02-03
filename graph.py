@@ -1,5 +1,7 @@
 from collections import deque
 from typing import List
+from typing import Optional
+
 
 # https://leetcode.com/problems/shortest-path-in-binary-matrix
 # BFS
@@ -66,3 +68,154 @@ def accountsMerge(self, accounts: List[List[str]]) -> List[List[str]]:
         emails = sorted(list(emails))
         result.append([person] + emails)
     return result
+
+# https://leetcode.com/problems/course-schedule
+def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
+    graph = {} # course -> [courses that must be taken afterward]
+    indegree = {} # course -> number of courses that current must be taken before
+
+    for c, p in prerequisites:
+        indegree[c] = indegree.get(c, 0) + 1
+        if p in graph:
+            graph[p].append(c)
+        else:
+            graph[p] = [c]
+
+    wl = deque([i for i in range(numCourses) if i not in indegree])
+
+    count = 0
+    while wl:
+        course = wl.popleft()
+        count += 1
+        if course in graph:
+            for nextCourse in graph[course]:
+                if indegree[nextCourse] == 1:
+                    wl.append(nextCourse)
+                    del indegree[nextCourse]
+                else:
+                    indegree[nextCourse] -= 1
+    return count == numCourses
+
+# https://leetcode.com/problems/course-schedule-ii
+def findOrder(self, numCourses: int, prerequisites: List[List[int]]) -> List[int]:
+    result = []
+    graph = {} # course -> [courses that must be taken afterward]
+    indegree = {} # course -> number of courses that current must be taken before
+
+    for c, p in prerequisites:
+        indegree[c] = indegree.get(c, 0) + 1
+        if p in graph:
+            graph[p].append(c)
+        else:
+            graph[p] = [c]
+
+    wl = deque([i for i in range(numCourses) if i not in indegree])
+
+    while wl:
+        course = wl.popleft()
+        result.append(course)
+        if course in graph:
+            for nextCourse in graph[course]:
+                if indegree[nextCourse] == 1:
+                    wl.append(nextCourse)
+                    del indegree[nextCourse]
+                else:
+                    indegree[nextCourse] -= 1
+    return result if numCourses == len(result) else []
+
+# https://leetcode.com/problems/clone-graph
+class Node:
+    def __init__(self, val = 0, neighbors = None):
+        self.val = val
+        self.neighbors = neighbors if neighbors is not None else []
+def cloneGraph(self, node: Optional['Node']) -> Optional['Node']:
+    if not node:
+        return None
+    d = {}
+    wl = deque()
+    wl.append(node)
+    # first map old node -> new node
+    while wl:
+        n = wl.popleft()
+        d[n] = Node(n.val, [])
+        for neigh in n.neighbors:
+            if neigh not in d:
+                wl.append(neigh)
+    # fill in new neighbors from the map
+    wl.append(node)
+    visited = set()
+    while wl:
+        n = wl.popleft()
+        if n in visited: # avoid revisiting nodes as prevention before adding to wl may not catch all
+            continue
+        visited.add(n)
+        for neigh in n.neighbors:
+            d[n].neighbors.append(d[neigh])
+            if neigh not in visited:
+                wl.append(neigh)
+    return d[node]
+def cloneGraphPretty(self, node: 'Node') -> 'Node':
+    if not node: return node
+    q, clones = deque([node]), {node.val: Node(node.val, [])}
+    while q:
+        cur = q.popleft()
+        cur_clone = clones[cur.val]
+
+        for ngbr in cur.neighbors:
+            if ngbr.val not in clones:
+                clones[ngbr.val] = Node(ngbr.val, [])
+                q.append(ngbr)
+
+            cur_clone.neighbors.append(clones[ngbr.val])
+    return clones[node.val]
+
+# https://leetcode.com/problems/copy-list-with-random-pointer
+def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+    if not head:
+        return None
+    oldToNew = {}
+
+    cur = head
+    while cur:
+        oldToNew[cur] = Node(cur.val)
+        cur = cur.next
+
+    cur = head
+    new = oldToNew[head]
+    while cur:
+        if cur.random:
+            new.random = oldToNew[cur.random]
+        cur = cur.next
+        if cur:
+            new.next = oldToNew[cur]
+            new = new.next
+    return oldToNew[head]
+# https://leetcode.com/problems/copy-list-with-random-pointer/solutions/4003262/9792-hash-table-linked-list-by-vanamsen-boof/
+def copyRandomListInterleave(self, head: 'Optional[Node]') -> 'Optional[Node]':
+    if not head:
+        return None
+
+    curr = head
+    while curr:
+        new_node = Node(curr.val, curr.next)
+        curr.next = new_node
+        curr = new_node.next
+
+    curr = head
+    while curr:
+        if curr.random:
+            curr.next.random = curr.random.next
+        curr = curr.next.next
+
+    old_head = head
+    new_head = head.next
+    curr_old = old_head
+    curr_new = new_head
+
+    while curr_old:
+        curr_old.next = curr_old.next.next
+        curr_new.next = curr_new.next.next if curr_new.next else None
+        curr_old = curr_old.next
+        curr_new = curr_new.next
+
+    return new_head

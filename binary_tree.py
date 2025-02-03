@@ -137,3 +137,136 @@ def sumNumbers(self, root: Optional[TreeNode]) -> int:
         else:
             return sumNums(node.left, num * 10 + node.val) + sumNums(node.right, num * 10 + node.val)
     return sumNums(root, 0)
+
+# https://leetcode.com/problems/binary-tree-maximum-path-sum
+# O(n) time and space (worst case linked list)
+def __init__(self):
+    self.maxSum = float('-inf')
+def maxPathSum(self, root: Optional[TreeNode]) -> int:
+    def pathSum(cur):
+        if cur:
+            left = max(cur.val, cur.val + pathSum(cur.left))
+            right = max(cur.val, cur.val + pathSum(cur.right))
+            # consider the largest path sum passing through current node (count both children)
+            self.maxSum = max(self.maxSum, left - cur.val + right)  # can only count cur.val once
+            # return the largest path sum in one of the node's children
+            return max(left, right)
+        return 0
+
+    pathSum(root)
+    return self.maxSum
+
+# https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree
+def verticalTraversal(self, root: Optional[TreeNode]) -> List[List[int]]:
+    nodes = []  # tuples of (x, y, val)
+    def traverse(node, x, y):
+        if node:
+            nodes.append((x, y, node.val))
+            traverse(node.left, x - 1, y + 1)
+            traverse(node.right, x + 1, y + 1)
+
+    traverse(root, 0, 0)
+    nodes.sort()
+    result = []
+    curCol = []
+    prevX = nodes[0][0]
+    for n in nodes:
+        x, y, val = n
+        if prevX != x:
+            result.append(list(curCol))
+            curCol.clear()
+        curCol.append(val)
+        prevX = x
+    if curCol:
+        result.append(curCol)
+    return result
+def __init__(self):
+    self.minX = float('inf')
+    self.maxX = float('-inf')
+def verticalTraversalOrig(self, root: Optional[TreeNode]) -> List[List[int]]:
+    colToVals = {}  # map y -> [values at this col]
+
+    def traverse(node, x, y):
+        if node:
+            self.minX = min(self.minX, x)
+            self.maxX = max(self.maxX, x)
+            if x in colToVals:
+                colToVals[x].append((y, node.val))  # need the y values to break tie between numbers at same spot
+            else:
+                colToVals[x] = [(y, node.val)]
+            traverse(node.left, x - 1, y + 1)
+            traverse(node.right, x + 1, y + 1)
+
+    traverse(root, 0, 0)
+    result = []
+    for i in range(self.minX, self.maxX + 1):
+        colToVals[i].sort()  # sort by y first and value second to break ties at same location
+        result.append([j[1] for j in colToVals[i]])
+    return result
+
+# https://leetcode.com/problems/path-sum-ii
+def pathSum(self, root: Optional[TreeNode], targetSum: int) -> List[List[int]]:
+    result = []
+
+    def pathSumHelper(cur, curSum, curPath):
+        if cur:
+            if not cur.left and not cur.right:  # at a leaf
+                if curSum + cur.val == targetSum:  # found a desired path
+                    curPath.append(cur.val)
+                    result.append(list(curPath))
+                    curPath.pop()
+            else:
+                # explore left and right children
+                curPath.append(cur.val)
+                pathSumHelper(cur.left, curSum + cur.val, curPath)
+                pathSumHelper(cur.right, curSum + cur.val, curPath)
+                curPath.pop()
+
+    pathSumHelper(root, 0, [])
+    return result
+
+# https://leetcode.com/problems/binary-tree-level-order-traversal
+def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+    result = []
+    if not root:
+        return result
+    wl = deque([root])
+    while wl:
+        size = len(wl)
+        level = []
+        for _ in range(size):
+            cur = wl.popleft()
+            level.append(cur.val)
+            if cur.left:
+                wl.append(cur.left)
+            if cur.right:
+                wl.append(cur.right)
+        result.append(level)
+    return result
+
+# https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/
+def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+    while True:
+        if root.val > p.val and root.val > q.val:
+            root = root.left
+        elif root.val < p.val and root.val < q.val:
+            root = root.right
+        else:
+            return root
+def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+    if root:
+        if root == p:
+            return p
+        elif root == q:
+            return q
+        else:
+            # use lowestCommonAncestor as a search/find function first, if find p and q then this node is the LCA
+            left = self.lowestCommonAncestor(root.left, p, q)
+            right = self.lowestCommonAncestor(root.right, p, q)
+            if left and right:
+                return root
+            elif left:  # if result has already been found below, bubble it up
+                return left
+            elif right:
+                return right
+    return None

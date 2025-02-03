@@ -7,6 +7,7 @@ chr(97)  # character from the ascii/unicode = 'a'
 # String
 'ABC'.lower()  # lowercase
 "hi there".split()  # split on whitespace or optional delimiter param
+" whitespace\t".strip()  # remove leading and trailing whitespace
 "hi there".count("h")  # count substring occurences
 "hi there".startswith("hi")
 ''.join(sorted("chars to sort"))  # sort chars in string
@@ -14,6 +15,7 @@ print('hero' in 'superhero')
 'hi there'.find('t')  # return -1 if not found, .index() will do same thing but raise ValueError if not found
 'hi there'.rfind('e')
 list("abcd")  # string to list (can also convert to tuple)
+"reverse me"[::-1]
 
 # Search
 import bisect
@@ -46,14 +48,16 @@ import copy
 deepCopy = copy.deepcopy(array)
 for i, n in enumerate([9,8,7,6]):
     print(f"Index: {i}, Value: {n}")
+[2, 3, 4].insert(0, 1)  # put 1 at index 0
 array.extend([5,6,7])  # add all elements to array
-reversed([1,2,3])
-tuple([1,2,3])  # list to tuple (also works with set)
-list((1,2,3)) # tuple to list
+newRev = reversed([1,2,3])  # [1,2].reverse() also works and modifies list without returning
+t = tuple([1,2,3])  # list to tuple (also works with set)
+l = list((1,2,3))  # tuple to list
+[1,2,3].clear()  # set to empty list
 
 # Sort
 sorted_lists = sorted([[2,3],[9,8,7],[4,5,6]], key=lambda x: x[0])  # sort by the first element
-[[2,3],[9,8,7],[4,5,6]].sort(key=lambda x: x[0], reverse=True)  # sort by the first element, order in reverse
+[[2],[9,8],[4,5]].sort(key=lambda x: x[0], reverse=True)  # sort by the first element, order in reverse
 
 # 2-D Arrays
 x, y = 4, 5
@@ -115,6 +119,8 @@ for value in person.values():  # Loop through values
 for key, value in person.items():  # Loop through key-value pairs
     print(f"{key}: {value}")
 # Unhashable types (mutable): dict, list, set – use tuple or frozenset
+from sortedcontainers import SortedDict
+sorted_map = SortedDict()
 
 # Binary Tree
 

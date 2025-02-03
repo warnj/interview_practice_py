@@ -1,3 +1,4 @@
+import bisect
 import heapq
 import random
 from typing import List
@@ -427,3 +428,351 @@ def findThePrefixCommonArray(self, A: List[int], B: List[int]) -> List[int]:
         result[i] = common
     return result
 
+# https://leetcode.com/problems/longest-consecutive-sequence
+def longestConsecutive(self, nums: List[int]) -> int:
+    lookup = set(nums)
+    result = 0
+    for n in lookup:
+        if n - 1 not in lookup:
+            # potential starting point of a subsequence, ensures we don't waste effort checking
+            # this subsequence again
+            i = n + 1
+            while i in lookup:
+                i += 1
+            result = max(result, i - n)
+            if result > len(nums) // 2:
+                return result
+    return result
+
+# https://leetcode.com/problems/find-minimum-in-rotated-sorted-array
+def findMin(self, nums: List[int]) -> int:
+    if len(nums) == 1:
+        return nums[0]
+    lo = 0
+    hi = len(nums) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if mid == 0:
+            return min(nums[0], nums[1])
+        if nums[mid] < nums[mid - 1]:
+            return nums[mid]
+
+        if nums[mid] > nums[hi]:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return lo
+
+# https://leetcode.com/problems/search-in-rotated-sorted-array
+def search(self, nums: List[int], target: int) -> int:
+    def findMin(nums: List[int]) -> int:
+        if len(nums) == 1:
+            return 0
+        lo = 0
+        hi = len(nums) - 1
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            if mid == 0:
+                return 0 if nums[0] < nums[1] else 1
+            if nums[mid] < nums[mid - 1]:
+                return mid
+
+            if nums[mid] > nums[hi]:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        return lo
+
+    n = len(nums)
+    offset = findMin(nums)
+    # do regular binary search but when checking numbers check the correct rotated index using offset
+    lo = 0
+    hi = n - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        cur = (mid + offset) % n
+        if nums[cur] == target:
+            return cur
+        if nums[cur] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+def searchPretty(self, nums: List[int], target: int) -> int:
+    left, right = 0, len(nums) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
+
+        if nums[left] <= nums[mid]:  # Left half is sorted
+            if nums[left] <= target < nums[mid]:  # Target in left half
+                right = mid - 1
+            else:
+                left = mid + 1
+        else:  # Right half is sorted
+            if nums[mid] < target <= nums[right]:  # Target in right half
+                left = mid + 1
+            else:
+                right = mid - 1
+    return -1
+
+# https://leetcode.com/problems/sort-colors
+# O(n) time and O(1) space
+def sortColors(self, nums: List[int]) -> None:
+    lo = -1  # index of last red
+    cur = 0  # cur index
+    hi = len(nums) - 1  # index before first blue
+
+    while cur <= hi:
+        if nums[cur] == 0:  # swap cur red with the index after last red
+            lo += 1
+            nums[lo], nums[cur] = nums[cur], nums[lo]
+            cur += 1
+        elif nums[cur] == 1:
+            # leave white in the middle
+            cur += 1
+        else:  # move blue to end
+            nums[hi], nums[cur] = nums[cur], nums[hi]
+            hi -= 1
+            # leave cur where it is since moved unknown value from end to cur
+
+# https://leetcode.com/problems/jump-game
+def canJump(self, nums: List[int]) -> bool:
+    furthest = 0  # furthest index we can currently jump to
+    for i in range(len(nums)):
+        furthest = max(furthest, i + nums[i])
+        if furthest >= len(nums) - 1:
+            return True
+        if furthest == i and nums[i] == 0:
+            return False
+    return False
+
+# https://leetcode.com/problems/maximum-subarray
+def maxSubArray(self, nums: List[int]) -> int:
+    s = nums[0]  # sum of nums[lo,hi)
+    maxSum = nums[0]
+    lo = 0
+    hi = 1
+    while hi < len(nums):
+        # a negative sum is worse than starting with nothing
+        while s <= 0 and lo < hi:
+            s -= nums[lo]
+            lo += 1
+        s += nums[hi]
+        maxSum = max(maxSum, s)
+        hi += 1
+    return maxSum
+def maxSubArrayPretty(self, nums: List[int]) -> int:
+    maxSum = nums[0]
+    currentSum = nums[0]
+    for num in nums[1:]:
+        currentSum = max(num, currentSum + num)
+        maxSum = max(maxSum, currentSum)
+    return maxSum
+
+# https://leetcode.com/problems/find-k-closest-elements
+def findClosestElements(self, arr: List[int], k: int, x: int) -> List[int]:
+    lo = 0
+    hi = len(arr) - k
+    # search the window arr[mid]-arr[mid+k]
+    while lo < hi:
+        mid = lo + (hi-lo) // 2
+        if x <= arr[mid]:
+            hi = mid
+        elif arr[mid+k] <= x:
+            lo = mid+1
+        else:
+            middist = abs(x-arr[mid])
+            midkdist = abs(x-arr[mid+k])
+            if middist <= midkdist:
+                hi = mid  # lo side of window closer to x so move window left
+            else:
+                lo = mid+1 # hi side closer to x
+    return arr[lo:lo+k]
+def findClosestElements(self, arr: List[int], k: int, x: int) -> List[int]:
+    hi = bisect.bisect_left(arr, x)  # First element >= x
+    lo = hi - 1  # Last element < x
+    result = []
+    # expand a window of the elements closest to x
+    while len(result) < k:
+        if lo < 0:  # No more elements on the left
+            result.append(arr[hi])
+            hi += 1
+        elif hi >= len(arr):  # No more elements on the right
+            result.append(arr[lo])
+            lo -= 1
+        elif abs(arr[lo] - x) <= abs(arr[hi] - x):  # Pick the closer element
+            result.append(arr[lo])
+            lo -= 1
+        else:
+            result.append(arr[hi])
+            hi += 1
+    return sorted(result)
+
+# https://leetcode.com/problems/product-of-array-except-self
+# O(n) time and O(1) space
+def productExceptSelf(self, nums: List[int]) -> List[int]:
+    result = [1] * len(nums)
+    prevProd = 1
+    for i in range(len(nums)-2, -1, -1):
+        result[i] = result[i+1] * nums[i+1]  # store suffix products
+    for i in range(len(nums)):
+        result[i] *= prevProd
+        prevProd *= nums[i]
+    return result
+
+# https://leetcode.com/problems/trapping-rain-water
+# O(n) time and O(1) space
+def trap(self, height: List[int]) -> int:
+    if len(height) < 3:
+        return 0
+    result = 0
+    left, leftMax = 1, height[0]
+    right, rightMax = len(height) - 2, height[-1]
+
+    while left <= right:
+        level = min(leftMax, rightMax)
+        # pick lower side, add the height of the column of water at this point and move to center
+        if leftMax < rightMax:
+            result += max(0, level - height[left])
+            leftMax = max(leftMax, height[left])
+            left += 1
+        else:
+            result += max(0, level - height[right])
+            rightMax = max(rightMax, height[right])
+            right -= 1
+    return result
+
+# https://leetcode.com/problems/contains-duplicate-ii
+def containsNearbyDuplicate(self, nums: List[int], k: int) -> bool:
+    valToIndex = {} # val -> most recent index of val
+    for i, n in enumerate(nums):
+        if n in valToIndex:
+            if i - valToIndex[n] <= k:
+                return True
+        valToIndex[n] = i
+    return False
+
+# https://leetcode.com/problems/remove-duplicates-from-sorted-array
+def removeDuplicates(self, nums: List[int]) -> int:
+    i = 1
+    for j in range(1, len(nums)):
+        if nums[j] != nums[j-1]:
+            nums[i] = nums[j]
+            i += 1
+    return i
+
+# https://leetcode.com/problems/continuous-subarray-sum
+def checkSubarraySum(self, nums: List[int], k: int) -> bool:
+    # compute the prefix mods (mod of the sum before each index)
+    # save the first index for each mod in a dict
+    # if a later prefix mod is the same, then the sum of the subarray between % k must be 0
+    firstMod = {0:-1} # modValue -> index of first occurance of it
+    s = 0
+    for i, n in enumerate(nums):
+        s += n
+        mod = s % k
+        if mod not in firstMod:
+            firstMod[mod] = i
+        elif i - firstMod[mod] > 1:
+            return True
+    return False
+def checkSubarraySumBrute(self, nums: List[int], k: int) -> bool:
+    for i in range(len(nums)-1):
+        curSum = nums[i]
+        for j in range(i+1, len(nums)):
+            curSum += nums[j]
+            if curSum % k == 0:
+                return True
+    return False
+
+# https://leetcode.com/problems/move-zeroes
+def moveZeroes(self, nums: List[int]) -> None:
+    try:
+        first0 = nums.index(0)
+    except:
+        return
+
+    i = first0 + 1
+    while i < len(nums):
+        if nums[i] != 0:
+            nums[first0], nums[i] = nums[i], 0
+            while first0 <= i and nums[first0] != 0:
+                first0 += 1
+        i += 1
+
+# https://leetcode.com/problems/best-time-to-buy-and-sell-stock
+def maxProfit(self, prices: List[int]) -> int:
+    result = 0
+    maxBefore = prices[-1]
+    for i in range(len(prices)-2, -1, -1):
+        result = max(result, maxBefore - prices[i])
+        maxBefore = max(maxBefore, prices[i])
+    return result
+
+# https://leetcode.com/problems/kth-missing-positive-number
+def findKthPositive(self, arr: List[int], k: int) -> int:
+    missing = arr[0] - 1
+    if missing >= k:
+        return k
+    for i in range(1, len(arr)):
+        gap = arr[i] - arr[i - 1] - 1
+        missing += gap
+        if missing >= k:
+            return arr[i] - 1 - (missing - k)
+    return arr[-1] + (k - missing)
+def findKthPositive2(self, A, k):
+    l, r = 0, len(A)
+    while l < r:
+        m = (l + r) / 2
+        if A[m] - 1 - m < k:
+            l = m + 1
+        else:
+            r = m
+    return l + k
+
+# https://leetcode.com/problems/next-permutation
+def nextPermutation(self, nums: List[int]) -> None:
+    # observe: if the 2nd to last is smaller than the last, swap last 2 numbers, otherwise:
+    # continue moving forward in number from the end until you find a number smaller than the num to its right
+
+    if len(nums) <= 1:
+        return nums
+
+    beforeHi = len(nums) - 2
+    # if equal, grab the leftmost number and move to end
+    while beforeHi >= 0 and nums[beforeHi] >= nums[beforeHi + 1]:
+        beforeHi -= 1
+
+    if beforeHi == -1:
+        nums.sort()
+    else:
+        # for the numbers to the right of beforeHi we must swap the smallest number larger than nums[beforeHi] at beforeHi and then sort the numbers to the right of beforeHi
+        minHigherI = beforeHi + 1
+        for i in range(beforeHi + 2, len(nums)):
+            if nums[i] > nums[beforeHi] and nums[i] < nums[minHigherI]:
+                minHigherI = i
+
+        temp = nums[beforeHi]
+        nums[beforeHi] = nums[minHigherI]
+        nums[minHigherI] = temp
+
+        nums[beforeHi + 1:] = sorted(nums[beforeHi + 1:])
+
+# https://leetcode.com/problems/max-consecutive-ones-iii
+def longestOnes(self, nums: List[int], k: int) -> int:
+    lo = 0
+    hi = 0
+    zeros = 0
+    result = 0
+    while hi < len(nums):
+        if nums[hi] == 0:
+            zeros += 1
+        while zeros > k:
+            if nums[lo] == 0:
+                zeros -= 1
+            lo += 1
+        result = max(result, hi-lo+1)
+        hi += 1
+    return result

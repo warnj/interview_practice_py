@@ -343,3 +343,175 @@ def wordBreakBetter(self, s: str, wordDict: List[str]) -> bool:
                     dp[i] = True
                     break
     return dp[-1]
+
+# https://leetcode.com/problems/remove-invalid-parentheses
+# O(2^n) time and O(n) space (for recursion stack for each index)
+def removeInvalidParentheses(self, s: str) -> List[str]:
+    # find the min of each type to remove, try all combinations of removing them, return the valid ones
+    openRemove, closeRemove = 0, 0
+    opens = 0
+    for c in s:
+        if c == '(':
+            opens += 1
+        elif c == ')':
+            if opens == 0:
+                closeRemove += 1
+            else:
+                opens -= 1
+    openRemove = opens
+
+    result = set()
+    def removeParens(strList, unclosedCount, i, oRemove, cRemove):
+        if oRemove < 0 or cRemove < 0 or unclosedCount < 0:
+            return  # prune this path in recursion tree, it will always be invalid
+        if oRemove == 0 and cRemove == 0 and unclosedCount == 0 and i == len(strList):
+            result.add(''.join(strList))
+        elif i == len(strList):
+            return
+        elif strList[i] == '(':
+            if oRemove > 0:
+                # explore removing the open
+                strList[i] = ''
+                removeParens(strList, unclosedCount, i+1, oRemove-1, cRemove)
+                strList[i] = '('
+            # explore keeping it
+            removeParens(strList, unclosedCount+1, i+1, oRemove, cRemove)
+        elif strList[i] == ')':
+            if cRemove > 0:
+                # explore removing the close
+                strList[i] = ''
+                removeParens(strList, unclosedCount, i+1, oRemove, cRemove-1)
+                strList[i] = ')'
+            # explore keeping it
+            removeParens(strList, unclosedCount-1, i+1, oRemove, cRemove)
+        else:
+            # explore keeping it
+            removeParens(strList, unclosedCount, i+1, oRemove, cRemove)
+
+    removeParens(list(s), 0, 0, openRemove, closeRemove)
+    return list(result)
+
+# https://leetcode.com/problems/multiply-strings
+def multiply(self, num1: str, num2: str) -> str:
+    # manual multiplication as you'd do by hand
+    sums = []
+    jNum = 0
+    for j in range(len(num2) - 1, -1, -1):
+        carry = 0
+        temp = 0
+        iNum = 0
+        for i in range(len(num1) - 1, -1, -1):
+            num = int(num1[i]) * int(num2[j]) + carry
+            carry = num // 10
+            temp += num % 10 * 10 ** iNum  # form number right to left
+            iNum += 1
+        if carry:
+            temp += carry * 10 ** iNum
+        sums.append(temp * 10 ** jNum)  # add some zeros to the right side for subsequent nums to sum
+        jNum += 1
+    return str(sum(sums))
+
+# https://leetcode.com/problems/word-break-ii
+# O(n * 2^n) time and O(2^n) space
+def wordBreak(self, s: str, wordDict: List[str]) -> List[str]:
+    wordDict = set(wordDict)
+    result = []
+
+    def wordBreakHelper(curWords, i):
+        if i >= len(s):  # found a combination of words
+            result.append(' '.join(curWords))
+        else:
+            for j in range(i + 1, len(s) + 1):
+                if s[i:j] in wordDict:
+                    # explore later options with the found word
+                    curWords.append(s[i:j])
+                    wordBreakHelper(curWords, j)
+                    curWords.pop()
+
+    wordBreakHelper([], 0)
+    return result
+
+# https://leetcode.com/problems/letter-combinations-of-a-phone-number
+def letterCombinationsIterative(self, digits: str) -> List[str]:
+    dToL = {
+        '2': 'abc',
+        '3': 'def',
+        '4': 'ghi',
+        '5': 'jkl',
+        '6': 'mno',
+        '7': 'pqrs',
+        '8': 'tuv',
+        '9': 'wxyz'
+    }
+    oldCombinations = [""]
+    for d in digits:
+        newCombinations = []
+        for c in oldCombinations:
+            for l in dToL[d]:
+                newCombinations.append(c + l)
+        oldCombinations = newCombinations
+    return [] if len(oldCombinations) == 1 else oldCombinations
+def letterCombinations(self, digits: str) -> List[str]:
+    dToL = {
+        '2': 'abc',
+        '3': 'def',
+        '4': 'ghi',
+        '5': 'jkl',
+        '6': 'mno',
+        '7': 'pqrs',
+        '8': 'tuv',
+        '9': 'wxyz'
+    }
+    def explore(result, temp, digits, i):
+        if i == len(digits):
+            result.append(''.join(temp))
+        else:
+            for l in dToL[digits[i]]:
+                temp.append(l)
+                explore(result, temp, digits, i + 1)
+                temp.pop()
+    result = []
+    if digits:
+        explore(result, [], digits, 0)
+    return result
+
+# https://leetcode.com/problems/add-strings
+def addStrings(self, num1: str, num2: str) -> str:
+    i = len(num1)-1
+    j = len(num2)-1
+    result = []
+
+    carry = 0
+    while i >= 0 or j >= 0:
+        n1 = 0 if i < 0 else int(num1[i])
+        n2 = 0 if j < 0 else int(num2[j])
+        digitSum = n1 + n2 + carry
+        if digitSum > 9:
+            carry = 1
+            digitSum %= 10
+        else:
+            carry = 0
+        result.append(str(digitSum))
+        i -= 1
+        j -= 1
+    if carry:
+        result.append(str(carry))
+    return ''.join(reversed(result))
+
+# https://leetcode.com/problems/longest-common-prefix
+def longestCommonPrefix(self, strs: List[str]) -> str:
+    pre = []
+    i = 0
+    while True:
+        if i == len(strs[0]):
+            return "".join(pre)
+        c = strs[0][i]
+        for j in range(1, len(strs)):
+            s = strs[j]
+            if i == len(s):
+                return "".join(pre)
+            if s[i] != c:
+                return "".join(pre)
+        pre.append(c)
+        i += 1
+    return "".join(pre)
