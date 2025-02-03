@@ -328,6 +328,54 @@ def merge(self, intervals: List[List[int]]) -> List[List[int]]:
     result.append([lo, hi])
     return result
 
+# https://leetcode.com/problems/insert-interval
+# O(n) time and O(1) space
+def insert(self, intervals: List[List[int]], newInterval: List[int]) -> List[List[int]]:
+    # todo: binary search for starting point
+    i = 0
+    while i < len(intervals) and intervals[i][0] < newInterval[0]:
+        i += 1
+
+    # i is where the newInterval should go, now insert in middle and possibly merge
+    result = []
+    cur = None
+    if i - 1 >= 0 and intervals[i - 1][1] >= newInterval[0]:
+        # need to merge with the one interval before
+        result.extend(intervals[:i - 1])
+        cur = [intervals[i - 1][0], max(intervals[i - 1][1], newInterval[1])]
+    else:
+        result.extend(intervals[:i])  # add the non-overlapping beginning intervals
+        cur = newInterval
+
+    # build new combined interval; merge from cur to the end of intervals adding to new result
+    while i < len(intervals) and cur[1] >= intervals[i][0]:
+        cur[1] = max(cur[1], intervals[i][1])
+        i += 1
+    result.append(cur)
+
+    # add the non-overlapping ending intervals to result
+    result.extend(intervals[i:])
+    return result
+
+# https://leetcode.com/problems/interval-list-intersections
+def intervalIntersection(self, firstList: List[List[int]], secondList: List[List[int]]) -> List[List[int]]:
+    def overlap(a, b):
+        a, b = (a, b) if a[0] <= b[0] else (b, a) # a will have the lowest first value
+        if a[1] >= b[0]:
+            return [b[0], min(a[1], b[1])] # overlap is highest first val and lowest second val
+        return None
+
+    result = []
+    i, j = 0, 0
+    while i < len(firstList) and j < len(secondList):
+        interval = overlap(firstList[i], secondList[j])
+        if interval:
+            result.append(interval)
+        if firstList[i][1] > secondList[j][1]: # consider the interval that ends last for next overlap
+            j += 1
+        else:
+            i += 1
+    return result
 
 # https://leetcode.com/problems/random-pick-with-weight/
 class RandomPickWeighted:
@@ -395,3 +443,203 @@ def myPow(self, x: float, n: int) -> float:
             return base * function(base * base, (exponent - 1) // 2) # reduce the exponent by 1 with extra mulitplication and then apply the double multiplication from even case
     f = function(x, abs(n))
     return f if n >= 0 else 1 / f
+
+# https://leetcode.com/problems/reverse-integer
+def reverse(self, x: int) -> int:
+    neg = True if x < 0 else False
+    if neg:
+        x *= -1
+    result = 0
+    while x > 0:
+        digit = x % 10
+        x = x // 10
+        result = result * 10 + digit
+
+    if result > 2 ** 31 - 1 or result < -2 ** 31:
+        return 0
+    if neg:
+        return -result
+    return result
+
+# https://leetcode.com/problems/climbing-stairs
+# O(n) time and O(1) space
+def climbStairs(self, n: int) -> int:
+    if n <= 3:
+        return n
+    ways2 = 1
+    ways1 = 2
+    ways = 3
+    for i in range(3, n):
+        ways2, ways1 = ways1, ways
+        ways = ways1 + ways2
+    return ways
+
+# https://leetcode.com/problems/pascals-triangle
+def generate(self, numRows: int) -> List[List[int]]:
+    result = [[1]]
+    for i in range(2, numRows + 1):
+        new = []
+        for j in range(i):
+            s = result[-1][j - 1] if j - 1 >= 0 else 0
+            s += result[-1][j] if j < len(result[-1]) else 0
+            new.append(s)
+        result.append(new)
+    return result
+def generate2(self, numRows: int) -> List[List[int]]:
+    result = [[1]]
+    for i in range(2, numRows + 1):
+        new = [1]
+        prev = result[-1]
+        for j in range(1, i - 1):
+            new.append(prev[j - 1] + prev[j])
+        new.append(1)
+        result.append(new)
+    return result
+
+# https://leetcode.com/problems/first-bad-version
+def firstBadVersion(self, n: int) -> int:
+    result = -1
+    lo = 1
+    hi = n
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if isBadVersion(mid):  # first bad is to the left or we are on the solution
+            hi = mid - 1
+            result = mid
+        else:
+            lo = mid + 1
+    return result
+
+# https://leetcode.com/problems/count-and-say
+# O(n*m) time and O(1) space
+def countAndSay(self, n: int) -> str:
+    def encodeRLE(numStr):
+        result = []
+        count = 1
+        i = 1
+        while i < len(numStr):
+            if numStr[i] == numStr[i - 1]:
+                count += 1
+            else:
+                result.append(str(count))
+                result.append(numStr[i - 1])
+                count = 1
+            i += 1
+        if i - 1 >= 0:
+            result.append(str(count))
+            result.append(numStr[i - 1])
+        return ''.join(result)
+
+    prevRLE = '1'
+    for cur in range(2, n + 1):
+        prevRLE = encodeRLE(prevRLE)
+    return prevRLE
+def countAndSayRecursive(self, n: int) -> str:
+    def encodeRLE(numStr):
+        result = []
+        count = 1
+        i = 1
+        while i < len(numStr):
+            if numStr[i] == numStr[i-1]:
+                count += 1
+            else:
+                result.append(str(count))
+                result.append(numStr[i-1])
+                count = 1
+            i += 1
+        if i-1 >= 0:
+            result.append(str(count))
+            result.append(numStr[i-1])
+        return ''.join(result)
+    if n == 1:
+        return '1'
+    return encodeRLE(str(self.countAndSayRecursive(n-1)))
+
+# https://leetcode.com/problems/string-to-integer-atoi
+def myAtoi(self, s: str) -> int:
+    def limitSize(s):
+        # instead of doing "n = int(s)" you can do:
+        neg = s[0] == '-'
+        if neg:
+            s = s[1:]
+        n = 0
+        for i in range(len(s)):
+            n = n*10 + int(s[i])
+        if neg:
+            n *= -1
+
+        if n > 2**31-1:
+            return 2**31-1
+        elif n < -2**31:
+            return -2**31
+        return n
+
+    s = s.strip()
+    if s:
+        if s[0] == '+':
+            if 1 < len(s) and not s[1].isnumeric():
+                return 0
+            s = s[1:]
+        if s:
+            start = 1 if s[0] == '-' else 0
+            for i in range(start, len(s)):
+                if not s[i].isnumeric():
+                    if i > start:
+                        return limitSize(s[:i])
+                    else:
+                        return 0
+                if i == len(s)-1:
+                    return limitSize(s)
+    return 0
+
+# https://leetcode.com/problems/palindrome-number
+def isPalindrome(self, x: int) -> bool:
+    if x < 0 or (x != 0 and x % 10 == 0):
+        return False
+    reversed_num = 0
+    while x > reversed_num:
+        reversed_num = reversed_num * 10 + x % 10
+        x //= 10
+    return x == reversed_num or x == reversed_num // 10
+def isPalindrome(self, x: int) -> bool:
+    reverse = 0
+    temp = x
+    while temp > 0:
+        digit = temp % 10  # take last digit from temp
+        temp = temp // 10
+
+        reverse *= 10  # move previous digit to the left
+        reverse += digit  # append to reversed number
+    # temp = 123, 12, 1, 0
+    # digit =     3, 2, 1
+    # reverse = 0, 3, 32, 321
+    return reverse == x
+
+# https://leetcode.com/problems/maximum-swap
+def maximumSwap(self, num: int) -> int:
+    numStr = list(str(num))
+    maxRightI = len(numStr) - 1
+    swap1 = -1
+    swap2 = -1
+
+    for i in range(len(numStr) - 2, -1, -1):
+        maxRightI = i + 1 if int(numStr[i + 1]) > int(numStr[maxRightI]) else maxRightI
+        if int(numStr[maxRightI]) > int(numStr[i]):
+            swap1 = maxRightI
+            swap2 = i
+
+    if swap1 > 0:
+        numStr[swap1], numStr[swap2] = numStr[swap2], numStr[swap1]
+        return int(''.join(numStr))
+    return num
+def maximumSwapBrute(self, num: int) -> int:
+    numStr = str(num)
+    result = num
+    for i in range(len(numStr)-1):
+        for j in range(1, len(numStr)):
+            swapped = list(numStr)
+            temp = swapped[j]
+            swapped[j] = swapped[i]
+            swapped[i] = temp
+            result = max(result, int(''.join(swapped)))
+    return result
