@@ -1,19 +1,6 @@
 from typing import List
 import random
 
-# https://leetcode.com/problems/binary-search
-def binarySearch(elems, target):
-    left = 0
-    right = len(elems) - 1
-    while left <= right:
-        mid = (left + right) // 2
-        if elems[mid] == target:
-            return mid
-        if elems[mid] < target:
-            left = mid + 1
-        else:
-            right = mid - 1
-    return -1
 
 def quicksort(nums: List[int]) -> None:
     return _quicksort(nums, 0, len(nums)-1)
