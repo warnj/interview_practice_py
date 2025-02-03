@@ -428,6 +428,31 @@ def findThePrefixCommonArray(self, A: List[int], B: List[int]) -> List[int]:
         result[i] = common
     return result
 
+# https://leetcode.com/problems/heaters
+def findRadius(self, houses: List[int], heaters: List[int]) -> int:
+    houses.sort()
+    heaters.sort()
+    i = 0
+    radius = 0
+    for house in houses:
+        # Move the heater pointer to the nearest heater to the current house
+        while i < len(heaters) - 1 and abs(heaters[i + 1] - house) <= abs(heaters[i] - house):
+            i += 1
+        radius = max(radius, abs(heaters[i] - house))
+    return radius
+def findRadiusBinarySearch(self, houses: List[int], heaters: List[int]) -> int:
+    houses.sort()
+    heaters.sort()
+    result = 0
+    for house in houses:
+        idx = bisect.bisect_left(heaters, house)
+        # Calculate distances to the closest heaters (left and right)
+        left_distance = float('inf') if idx == 0 else abs(house - heaters[idx - 1])
+        right_distance = float('inf') if idx == len(heaters) else abs(house - heaters[idx])
+        nearest = min(left_distance, right_distance)
+        result = max(result, nearest)
+    return result
+
 # https://leetcode.com/problems/longest-consecutive-sequence
 def longestConsecutive(self, nums: List[int]) -> int:
     lookup = set(nums)

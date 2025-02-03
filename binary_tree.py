@@ -138,6 +138,53 @@ def sumNumbers(self, root: Optional[TreeNode]) -> int:
             return sumNums(node.left, num * 10 + node.val) + sumNums(node.right, num * 10 + node.val)
     return sumNums(root, 0)
 
+# https://leetcode.com/problems/binary-tree-inorder-traversal
+def inorderTraversalIterative(self, root: Optional[TreeNode]) -> List[int]:
+    result = []
+    if not root:
+        return result
+    # start as far down left as you can, pop from stack working back upward and move right if possible (and down to left of that new subtree) as you return up
+    stack = [root]
+    cur = root
+    while cur.left:
+        stack.append(cur.left)
+        cur = cur.left
+    while stack:
+        cur = stack.pop()
+        result.append(cur.val)
+        if cur.right:
+            stack.append(cur.right)
+            temp = cur.right
+            while temp.left:
+                stack.append(temp.left)
+                temp = temp.left
+    return result
+
+# turn the iterative in-order traversal into iterator
+class BSTIterator:
+    def __init__(self, root: Optional[TreeNode]):
+        self.stack = [root]
+        cur = root
+        while cur.left:
+            self.stack.append(cur.left)
+            cur = cur.left
+    def next(self) -> int:
+        if self.stack:
+            cur = self.stack.pop()
+            result = cur.val
+            if cur.right:
+                self.stack.append(cur.right)
+                temp = cur.right
+                while temp.left:
+                    self.stack.append(temp.left)
+                    temp = temp.left
+            return result
+        else:
+            return -1
+    def hasNext(self) -> bool:
+        return len(self.stack) > 0
+
+
 # https://leetcode.com/problems/binary-tree-maximum-path-sum
 # O(n) time and space (worst case linked list)
 def __init__(self):
