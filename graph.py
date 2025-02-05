@@ -72,7 +72,7 @@ def accountsMerge(self, accounts: List[List[str]]) -> List[List[str]]:
 # https://leetcode.com/problems/course-schedule
 def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
     graph = {} # course -> [courses that must be taken afterward]
-    indegree = {} # course -> number of courses that current must be taken before
+    indegree = {} # course -> number of prerequisites
 
     for c, p in prerequisites:
         indegree[c] = indegree.get(c, 0) + 1
@@ -219,3 +219,57 @@ def copyRandomListInterleave(self, head: 'Optional[Node]') -> 'Optional[Node]':
         curr_new = curr_new.next
 
     return new_head
+
+# https://leetcode.com/problems/open-the-lock
+def openLock(self, deadends: List[str], target: str) -> int:
+    deadends = set(deadends)
+    if '0000' in deadends:
+        return -1
+    if '0000' == target:
+        return 0
+
+    # bfs to find shortest distance
+    visited = set('0000')
+    wl = deque([([0, 0, 0, 0], 0)])  # (combination, distance)
+    while wl:
+        comb, dist = wl.popleft()
+
+        # make moves, any of the 4 numbers could go up or down, explore them if they are valid
+        for i in range(4):
+            nextComb = list(comb)
+            nextComb[i] = (nextComb[i] + 1) % 10
+            nextCombStr = ''.join([str(s) for s in nextComb])
+            if nextCombStr not in deadends and nextCombStr not in visited:
+                if nextCombStr == target:
+                    return dist + 1
+                wl.append((nextComb, dist + 1))
+                visited.add(nextCombStr)
+
+            nextComb = list(comb)
+            nextComb[i] = (nextComb[i] - 1) % 10
+            nextCombStr = ''.join([str(s) for s in nextComb])
+            if nextCombStr not in deadends and nextCombStr not in visited:
+                if nextCombStr == target:
+                    return dist + 1
+                wl.append((nextComb, dist + 1))
+                visited.add(nextCombStr)
+    return -1
+def openLockPretty(self, deadends: List[str], target: str) -> int:
+    deadends = set(deadends)
+    if "0000" in deadends:
+        return -1
+    queue = deque([("0000", 0)])
+    visited = set("0000")
+    while queue:
+        state, moves = queue.popleft()
+        if state == target:
+            return moves
+        for i in range(4):
+            for delta in (-1, 1):
+                new_digit = (int(state[i]) + delta) % 10
+                new_state = state[:i] + str(new_digit) + state[i + 1:]
+
+                if new_state not in visited and new_state not in deadends:
+                    visited.add(new_state)
+                    queue.append((new_state, moves + 1))
+    return -1

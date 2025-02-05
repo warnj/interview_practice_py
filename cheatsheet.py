@@ -107,7 +107,7 @@ b = 3 in s
 # Dictionary:
 person = {
     "name": "John",
-    "age": 30,
+    "age": 30, # can mix value types
 }
 n1 = person["name"]
 n2 = person.get("name", 'default value')  # avoids KeyError if key doesn't exist
@@ -115,6 +115,7 @@ person["job"] = "Engineer"
 person["age"] = 31
 del person["name"]
 job = person.pop("job")  # returns the value of the removed key
+val = person.setdefault('name', 'default')  # sets person['name'] = 'default' if name doesn't exist
 person.clear()  # remove all items
 print("name" in person)
 print("job" not in person)
@@ -127,6 +128,13 @@ for key, value in person.items():  # Loop through key-value pairs
 # Unhashable types (mutable): dict, list, set – use tuple or frozenset
 from sortedcontainers import SortedDict
 sorted_map = SortedDict()
+from collections import OrderedDict
+od = OrderedDict
+od.popitem(last=False) # removes first item
+od.pop() # removes last
+from collections import Counter
+counter = Counter(['apple', 'banana', 'apple'])  # Counter({'apple': 2, 'banana': 1})
+counter.values()  # [2, 1]
 
 # Binary Tree
 
@@ -142,6 +150,7 @@ random.randint(5, 10)  # inclusive start and end
 randomFloat = random.random()
 randomFloatRange = random.uniform(5.5, 9.5)
 randomElem = random.choice([10, 20, 30, 40, 50])
+random.shuffle([1, 2, 3])
 
 # Object Oriented
 hashCode = hash('abc')
@@ -151,16 +160,20 @@ class MyClass:
 class Comparable:
     def __init__(self, value):
         self.value = value
-    def __eq__(self, other):
+    def __eq__(self, other): # compare objects on content not memory address
         if isinstance(other, Comparable):
             return self.value == other.value
         return NotImplemented
-    def __lt__(self, other):
+    def __lt__(self, other): # make comparable for sorting
         if isinstance(other, Comparable):
             return self.value < other.value
         return NotImplemented
     def __repr__(self):
         return f"Comparable(value={self.value})"
+    def __len__(self):
+        return len(self.value)
+    def __hash__(self):
+        return hash(self.value)  # self.value must be immutable
 
 # Typing
 from typing import Optional

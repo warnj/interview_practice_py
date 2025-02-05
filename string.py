@@ -515,3 +515,38 @@ def longestCommonPrefix(self, strs: List[str]) -> str:
         pre.append(c)
         i += 1
     return "".join(pre)
+
+# https://leetcode.com/problems/longest-common-subsequence
+# O(n*m) time and space
+def longestCommonSubsequence(self, text1: str, text2: str) -> int:
+    l1 = len(text1)
+    l2 = len(text2)
+    dp = [[0] * l1 for _ in range(l2)]
+    for i in range(l2): # col
+        for j in range(l1): # row
+            if text1[j] == text2[i]:
+                # must use previous row and col to avoid double counting subsequent matching chars in same row/col
+                dp[i][j] = 1 if i-i < 0 or j-1 < 0 else dp[i-1][j-1] + 1
+            else:
+                up = 0 if j-1 < 0 else dp[i][j-1]
+                left = 0 if i-1 < 0 else dp[i-1][j]
+                dp[i][j] = max(up, left)
+    # for row in dp:
+    #     print(row)
+    return dp[l2-1][l1-1]
+#   a b c d e
+# a 1 1 1 1 1
+# c 1 1 2 2 2
+# e 1 1 2 2 3
+
+#   a b c b a
+# a 1 1 1 1 1
+# b 1 2 2 2 2
+# c 1 2 3 3 3
+# b 1 2 3 4 4
+# c 1 2 3 4 4
+# a 1 2 3 4 5
+
+#   a a a a
+# a 1 1 1 1
+

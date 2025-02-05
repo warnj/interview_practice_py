@@ -801,3 +801,17 @@ def longestOnes(self, nums: List[int], k: int) -> int:
         result = max(result, hi-lo+1)
         hi += 1
     return result
+
+# https://leetcode.com/problems/increasing-triplet-subsequence
+def increasingTriplet(self, nums: List[int]) -> bool:
+    lo = float('inf')  # tracks the min value in nums
+    mid = float('inf')  # mid gets set if there is a valid lower number before it
+    for n in nums:
+        if n <= lo:
+            lo = n
+        elif n <= mid:
+            mid = n
+        else:
+            return True
+    return False
+

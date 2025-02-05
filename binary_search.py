@@ -59,3 +59,31 @@ def searchRangePretty(self, nums: List[int], target: int) -> List[int]:
     if lo <= hi:
         return [lo, hi]
     return [-1, -1]
+
+# https://leetcode.com/problems/single-element-in-a-sorted-array
+def singleNonDuplicate(self, nums: List[int]) -> int:
+    if len(nums) == 1 or nums[1] != nums[0]:
+        return nums[0]
+    lo = 0
+    hi = len(nums) - 1
+    while lo <= hi:
+        # if first number of a pair is at an even index (0, 2, 4 ...) then have not seen the solo number yet
+        mid = (lo + hi) // 2
+        pre = mid - 1
+
+        if nums[pre] != nums[mid]:
+            # found target
+            if mid + 1 == len(nums) or nums[mid + 1] != nums[mid]:
+                return nums[mid]
+            # mid is the first number of a pair
+            if mid % 2 == 0:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        else:
+            # pre is the first number of a pair
+            if pre % 2 == 0:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+    return -1

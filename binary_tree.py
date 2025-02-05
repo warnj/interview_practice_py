@@ -8,7 +8,6 @@ class TreeNode:
         self.left = left
         self.right = right
 
-
 # https://leetcode.com/problems/reverse-odd-levels-of-binary-tree
 # O(n) time and space
 def reverseOddLevelsBFS(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
