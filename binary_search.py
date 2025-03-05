@@ -1,3 +1,4 @@
+import bisect
 from typing import List
 
 
@@ -56,6 +57,12 @@ def searchRangePretty(self, nums: List[int], target: int) -> List[int]:
         return lo
     lo = search(target)
     hi = search(target + 1) - 1
+    if lo <= hi:
+        return [lo, hi]
+    return [-1, -1]
+def searchRangeCheat(self, nums: List[int], target: int) -> List[int]:
+    lo = bisect.bisect_left(nums, target)
+    hi = bisect.bisect_right(nums, target) - 1
     if lo <= hi:
         return [lo, hi]
     return [-1, -1]

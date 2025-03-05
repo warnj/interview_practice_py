@@ -2,6 +2,7 @@
 from collections import OrderedDict
 
 class LFUCache:
+    # O(n) space
     def __init__(self, capacity: int):
         self.capacity = capacity # must be > 0
         self.minFreq = 0
@@ -23,6 +24,7 @@ class LFUCache:
         else:
             self.countToKey[oldCount + 1] = OrderedDict({key: None})  # values are unused
 
+    # O(1) time
     def get(self, key: int) -> int:
         if key in self.contents:
             self._incr(key)
@@ -30,6 +32,7 @@ class LFUCache:
         else:
             return -1
 
+    # O(1) time
     def put(self, key: int, value: int) -> None:
         if key in self.contents:
             # replace
@@ -68,45 +71,3 @@ class TestLFUCache(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-'''
-class LFUCache:
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.counts = {}  # key -> count
-        self.contents = {}  # key -> value
-
-        # key -> node in linked list (has count and value)
-        # linked list in sorted order from lowest count to highest count
-
-        # incr count: visit the node via map, incr count, and move it right
-        # evict: start at front of singly linked list and go until count increases 1, use the key to delete from map
-        # add: front of linked
-        #  -> (k=2,v=99,c=1) -> (k=3,v=98,c=1) -> (k=3,v=98,c=3)
-
-
-    def get(self, key: int) -> int:
-        if key in self.contents:
-            self.counts[key] += 1
-            return self.contents[key]
-        else:
-            return -1
-
-    def put(self, key: int, value: int) -> None:
-        if key in self.contents:
-            # replace
-            self.counts[key] += 1
-            self.contents[key] = value
-            return
-        if len(self.contents) == self.capacity:
-            # evict
-            # find lowest count:
-            #    heap to find min - not O(1)
-            #    map count -> [values with count] + min heap of counts
-            #    stack but updating count is hard
-
-        # add
-        self.counts[key] = 1
-        self.contents[key] = value
-'''

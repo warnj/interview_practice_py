@@ -1,3 +1,27 @@
+from collections import OrderedDict
+class LRUCacheBuiltin:
+    def __init__(self, capacity: int):
+        self.contents = OrderedDict()
+        self.capacity = capacity
+
+    def get(self, key: int) -> int:
+        if key in self.contents:
+            # self.contents.move_to_end(key) would work better!
+            val = self.contents.pop(key)  # remove from old location
+            self.contents[key] = val  # add to the back
+            return val
+        else:
+            return -1
+
+    def put(self, key: int, value: int) -> None:
+        if key not in self.contents:
+            if len(self.contents) == self.capacity:
+                self.contents.popitem(last=False) # remove LRU
+        else:
+            del self.contents[key] # remove from old location
+        self.contents[key] = value # add to the back
+
+
 class LRUCache:
     class Node:
         def __init__(self, key=0, val=0, n=None, p=None):

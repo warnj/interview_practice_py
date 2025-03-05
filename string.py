@@ -1,7 +1,8 @@
 # https://leetcode.com/problems/longest-substring-without-repeating-characters/
 # two pointer: O(n) time and O(1) space (max set size limited by # of different chars)
 import re
-from collections import deque
+from collections import deque, Counter, defaultdict
+from functools import cache
 from typing import List
 
 
@@ -22,6 +23,22 @@ def lengthOfLongestSubstring(self, s: str) -> int:
             result = max(result, hi - lo + 1)
             hi += 1
     return result
+# above answer requires 2n steps in worst case, this optimization requires n at most
+def lengthOfLongestSubstringOptimal(self, s: str) -> int:
+    n = len(s)
+    ans = 0
+    charToNextIndex = {} # stores the index after current character
+    i = 0
+    # try to extend the range [i, j]
+    for j in range(n):
+        if s[j] in charToNextIndex: # the char s[j] has already been seen
+            # either leave i (low pointer) where it is if previously seen location was before the start of current
+            # window or move the low end of window to the next location after the duplicate char
+            i = max(charToNextIndex[s[j]], i)
+
+        ans = max(ans, j - i + 1)
+        charToNextIndex[s[j]] = j + 1
+    return ans
 
 # https://leetcode.com/problems/group-anagrams
 def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
@@ -317,6 +334,17 @@ def minimumLength(self, s: str) -> int:
     return total
 
 # https://leetcode.com/problems/word-break
+# n=len(s), m=len(worddict), k=avg(len(words))  Time complexity: O(n⋅m⋅k) Space complexity: O(n)
+def wordBreakMemo(self, s: str, wordDict: List[str]) -> bool:
+    @cache
+    def dp(i):
+        if i < 0:
+            return True
+        for word in wordDict:
+            if s[i - len(word) + 1: i + 1] == word and dp(i - len(word)):
+                return True
+        return False
+    return dp(len(s) - 1)
 def wordBreak(self, s: str, wordDict: List[str]) -> bool:
     word_set = set(wordDict)
     memo = {}
@@ -550,3 +578,547 @@ def longestCommonSubsequence(self, text1: str, text2: str) -> int:
 #   a a a a
 # a 1 1 1 1
 
+# https://leetcode.com/problems/minimum-window-substring
+# O(n+m) time and O(26*2) space
+def minWindow(self, s: str, t: str) -> str:
+    counts = Counter(t)  # char counts in smaller string t
+    windowCounts = {}  # char counts in current window (lo and hi inclusive)
+    numCountsGtOrEq = 0  # number of counts in current window that satisfy the count requirements in t
+    lo = -1
+    result = ''
+    for hi in range(len(s)):
+        c = s[hi]
+        if c in counts:
+            count = windowCounts.get(c, 0)
+            windowCounts[c] = count + 1
+
+            if numCountsGtOrEq < len(counts):  # saving the start and end of first legal sequence
+                if lo == -1:
+                    lo = hi  # save first as start
+                if counts[c] == count + 1:
+                    numCountsGtOrEq += 1  # window now meeting the count requirement for this character
+                    if numCountsGtOrEq == len(counts):
+                        result = s[lo: hi + 1]  # completing first legal sequence
+
+            if numCountsGtOrEq == len(counts):
+                # already found a legal sequence, can it be shorter? - shorten from the front if possible
+                while lo < hi:
+                    c2 = s[lo]
+                    if c2 in counts:
+                        count = counts[c2]
+                        wCount = windowCounts[c2]
+                        if wCount > count:
+                            windowCounts[c2] -= 1  # lower the count and keep shrinking window
+                        else:  # wCount == count
+                            break  # keep the lo pointer here since window needs this char
+                    lo += 1
+
+        if hi - lo + 1 < len(result):
+            result = s[lo: hi + 1]
+    return result
+
+# https://leetcode.com/problems/reverse-words-in-a-string
+def reverseWords(self, s: str) -> str:
+    l = list(s.strip())
+    self.reverse(l, 0, len(l) - 1)
+    lo = 0
+    for i in range(len(l)):
+        c = l[i]
+        if c != ' ':
+            if i > 0 and (l[i - 1] == ' ' or l[i - 1] == ''):
+                # start of a word
+                lo = i
+            elif (i + 1 < len(l) and l[i + 1] == ' ') or i + 1 == len(l):
+                # end of a word
+                hi = i
+                self.reverse(l, lo, hi)
+        else:
+            j = i + 1
+            while j < len(l) and l[j] == ' ':
+                l[j] = ''  # delete duplicate non-letter chars
+                j += 1
+            i = j
+    return ''.join(l)
+def reverse(self, letters, lo, hi):
+    while lo < hi:
+        letters[lo], letters[hi] = letters[hi], letters[lo]
+        lo += 1
+        hi -= 1
+def reverseWordsSimple(self, s: str) -> str:
+    words = s.split()
+    words.reverse()
+    return ' '.join(words)
+
+# https://leetcode.com/problems/minimum-number-of-steps-to-make-two-strings-anagram
+def minSteps(self, s: str, t: str) -> int:
+    sCounts = [0] * 26
+    for c in s:
+        sCounts[ord(c) - ord('a')] += 1
+    tCounts = [0] * 26
+    for c in t:
+        tCounts[ord(c) - ord('a')] += 1
+    steps = 0
+    for i in range(26):
+        sc = sCounts[i]
+        tc = tCounts[i]
+        steps += abs(tc - sc)
+    return steps // 2
+
+# https://leetcode.com/problems/longest-duplicate-substring
+# O(n logn) time and O(n) space
+def longestDupSubstring(self, s: str) -> str:
+    def duplicateSubstr(l):
+        lo = 0
+        hi = l
+        subs = set()
+        while hi <= len(s):
+            sub = s[lo:hi]
+            if sub in subs:
+                return sub
+            subs.add(sub)
+            hi += 1
+            lo += 1
+        return ''
+    r = ''
+    hi = len(s) - 1
+    lo = 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        d = duplicateSubstr(mid)
+        if len(d) > len(r): r = d
+        if d:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return r
+# O(n^2) time and space
+def longestDupSubstringBrute(self, s: str) -> str:
+    counts = defaultdict(int)
+    for i in range(len(s)):
+        for j in range(i, len(s) + 1):
+            substr = s[i:j]
+            counts[substr] += 1
+    r = ''
+    for substr, count in counts.items():
+        if count > 1 and len(substr) > len(r):
+            r = substr
+    return r
+
+# https://leetcode.com/problems/clear-digits
+def clearDigits(self, s: str) -> str:
+    answer = []
+    for char in s:
+        if char.isdigit() and answer:
+            answer.pop()
+        else:
+            answer.append(char) # takes advantage of the guarantee that all digits can be deleted from input
+    return "".join(answer)
+def clearDigitsNaive(self, s: str) -> str:
+    s = list(s)
+    for i in range(len(s)):
+        if s[i].isdigit():
+            lo = i - 1
+            while lo >= 0:
+                if s[lo].isalpha():
+                    # delete them
+                    s[i] = ''
+                    s[lo] = ''
+                    break
+                lo -= 1
+    return ''.join(s)
+
+# https://leetcode.com/problems/goat-latin
+def toGoatLatin(self, sentence: str) -> str:
+    parts = sentence.split()
+    for i in range(len(parts)):
+        if not parts[i].lower().startswith(('a', 'e', 'i', 'o', 'u')):
+            front = parts[i][0]
+            parts[i] = parts[i][1:] + front
+        parts[i] += 'ma'
+        parts[i] += 'a' * (1 + i)
+    return ' '.join(parts)
+
+# https://leetcode.com/problems/merge-strings-alternately
+def mergeAlternately(self, word1: str, word2: str) -> str:
+    # word1 = word1.split()
+    # word2 = word2.split()
+    r = []
+    for a, b in zip(word1, word2):
+        r.append(a + b)
+    l1 = len(word1)
+    l2 = len(word2)
+    if l1 > l2:
+        r.extend(word1[l2:])
+    else:
+        r.extend(word2[l1:])
+    return ''.join(r)
+def mergeAlternatelyPretty(self, word1, word2):
+    result = []
+    n = max(len(word1), len(word2))
+    for i in range(n):
+        if i < len(word1):
+            result += word1[i]
+        if i < len(word2):
+            result += word2[i]
+    return "".join(result)
+
+# https://leetcode.com/problems/remove-all-adjacent-duplicates-in-string
+def removeDuplicates(self, s: str) -> str:
+    stack = []
+    for i in range(len(s)):
+        if stack and stack[-1] == s[i]:
+            stack.pop()
+        else:
+            stack.append(s[i])
+    return ''.join(stack)
+# O(n^2) time dumb soln
+def removeDuplicatesBrute(self, s: str) -> str:
+    s = list(s)
+    for i in range(1, len(s)):
+        lo = i - 1
+        hi = i
+        while lo >= 0 and hi < len(s):
+            while lo >= 0 and s[lo] == '': lo -= 1
+            while hi < len(s) and s[hi] == '': hi += 1
+            if lo >= 0 and hi < len(s) and s[lo] == s[hi]:
+                s[lo] = ''
+                s[hi] = ''
+                lo -= 1
+                hi += 1
+            else:
+                break
+    return ''.join(s)
+
+# https://leetcode.com/problems/custom-sort-string
+def customSortString(self, order: str, s: str) -> str:
+    r = []
+    counts = [0] * 26  # count of chars in s
+    for c in s:
+        counts[ord(c) - ord('a')] += 1
+    for o in order:
+        count = counts[ord(o) - ord('a')]
+        r.extend(o * count)
+        counts[ord(o) - ord('a')] = 0
+    for i, count in enumerate(counts):
+        r.extend(chr(ord('a') + i) * count)
+    return ''.join(r)
+
+# https://leetcode.com/problems/check-if-one-string-swap-can-make-strings-equal
+def areAlmostEqual(self, s1: str, s2: str) -> bool:
+    if s1 == s2: return True
+    lo, hi = -1, -1  # should be exactly 2 places they don't match
+    for i in range(len(s1)):
+        if s1[i] != s2[i]:
+            if lo < 0:
+                lo = i
+            elif hi < 0:
+                hi = i
+            else:
+                return False
+    return s1[lo] == s2[hi] and s1[hi] == s2[lo]
+
+# https://leetcode.com/problems/word-ladder
+# Time and space Complexity: O(M^2 * n)
+def ladderLength(self, beginWord: str, endWord: str, wordList: List[str]) -> int:
+    if endWord not in wordList: return 0
+
+    def adjacent(w1, w2):
+        diff = False
+        for i, j in zip(w1, w2):
+            if i != j:
+                if diff:
+                    return False
+                diff = True
+        return True
+
+    # make graph of words 1 away from each other
+    graph = defaultdict(list)
+    combined = [beginWord] + wordList
+    for i in range(len(combined) - 1):
+        for j in range(i + 1, len(combined)):
+            w1, w2 = combined[i], combined[j]
+            if adjacent(w1, w2):
+                graph[w1].append(w2)
+                graph[w2].append(w1)
+    # print(graph)
+    # bfs
+    q = deque([beginWord])
+    visited = set([beginWord])
+    d = 0
+    while q:
+        d += 1
+        size = len(q)
+        for _ in range(size):
+            cur = q.popleft()
+            # print('visiting', cur, 'at distance', d)
+            if cur == endWord:
+                return d
+            for child in graph[cur]:
+                if child not in visited:
+                    visited.add(child)
+                    q.append(child)
+    return 0
+
+# https://leetcode.com/problems/text-justification
+# O(n*k) time
+def fullJustify(self, words: List[str], maxWidth: int) -> List[str]:
+    def get_words(i):
+        current_line = []
+        curr_length = 0
+        while i < len(words) and curr_length + len(words[i]) <= maxWidth:
+            current_line.append(words[i])
+            curr_length += len(words[i]) + 1
+            i += 1
+        return current_line
+
+    def create_line(line, i):
+        base_length = -1
+        for word in line:
+            base_length += len(word) + 1
+
+        extra_spaces = maxWidth - base_length
+        if len(line) == 1 or i == len(words):
+            return " ".join(line) + " " * extra_spaces
+
+        word_count = len(line) - 1
+        spaces_per_word = extra_spaces // word_count
+        needs_extra_space = extra_spaces % word_count
+
+        for j in range(needs_extra_space):
+            line[j] += " "
+        for j in range(word_count):
+            line[j] += " " * spaces_per_word
+        return " ".join(line)
+
+    ans = []
+    i = 0 # word index we're currently on
+    while i < len(words):
+        current_line = get_words(i)
+        i += len(current_line)
+        ans.append(create_line(current_line, i))
+    return ans
+
+# https://leetcode.com/problems/decode-string/
+# Time Complexity: O(maxK⋅n), Space Complexity: O(m+n)
+'''
+class Solution {
+    String decodeString(String s) {
+        Stack<Integer> countStack = new Stack<>();
+        Stack<StringBuilder> stringStack = new Stack<>();
+        StringBuilder currentString = new StringBuilder();
+        int k = 0;
+        for (char ch : s.toCharArray()) {
+            if (Character.isDigit(ch)) {
+                k = k * 10 + ch - '0';
+            } else if (ch == '[') {
+                // push the number k to countStack
+                countStack.push(k);
+                // push the currentString to stringStack
+                stringStack.push(currentString);
+                // reset currentString and k
+                currentString = new StringBuilder();
+                k = 0;
+            } else if (ch == ']') {
+                StringBuilder decodedString = stringStack.pop();
+                // decode currentK[currentString] by appending currentString k times
+                for (int currentK = countStack.pop(); currentK > 0; currentK--) {
+                    decodedString.append(currentString);
+                }
+                currentString = decodedString;
+            } else {
+                currentString.append(ch);
+            }
+        }
+        return currentString.toString();
+    }
+}
+# Time Complexity: O(maxK⋅n), O(n) space
+class Solution {
+    int index = 0;
+    String decodeString(String s) {
+        StringBuilder result = new StringBuilder();
+        while (index < s.length() && s.charAt(index) != ']') {
+            if (!Character.isDigit(s.charAt(index)))
+                result.append(s.charAt(index++));
+            else {
+                int k = 0;
+                // build k while next character is a digit
+                while (index < s.length() && Character.isDigit(s.charAt(index)))
+                    k = k * 10 + s.charAt(index++) - '0';
+                // ignore the opening bracket '['    
+                index++;
+                String decodedString = decodeString(s);
+                // ignore the closing bracket ']'
+                index++;
+                // build k[decodedString] and append to the result
+                while (k-- > 0)
+                    result.append(decodedString);
+            }
+        }
+        return new String(result);
+    }
+}
+'''
+
+# https://leetcode.com/problems/regular-expression-matching
+def isMatch(self, text: str, pattern: str) -> bool:
+    if not pattern:
+        return not text
+    first_match = bool(text) and pattern[0] in {text[0], "."}
+    if len(pattern) >= 2 and pattern[1] == "*":
+        return (
+            self.isMatch(text, pattern[2:])
+            or first_match
+            and self.isMatch(text[1:], pattern)
+        )
+    else:
+        return first_match and self.isMatch(text[1:], pattern[1:])
+def isMatch(self, text: str, pattern: str) -> bool:
+    memo = {}
+    def dp(i: int, j: int) -> bool:
+        if (i, j) not in memo:
+            if j == len(pattern):
+                ans = i == len(text)
+            else:
+                first_match = i < len(text) and pattern[j] in {text[i], "."}
+                if j + 1 < len(pattern) and pattern[j + 1] == "*":
+                    ans = dp(i, j + 2) or first_match and dp(i + 1, j)
+                else:
+                    ans = first_match and dp(i + 1, j + 1)
+
+            memo[i, j] = ans
+        return memo[i, j]
+    return dp(0, 0)
+# time and space complexity is O(TP)
+def isMatch(self, text: str, pattern: str) -> bool:
+    dp = [[False] * (len(pattern) + 1) for _ in range(len(text) + 1)]
+    dp[-1][-1] = True
+    for i in range(len(text), -1, -1):
+        for j in range(len(pattern) - 1, -1, -1):
+            first_match = i < len(text) and pattern[j] in {text[i], "."}
+            if j + 1 < len(pattern) and pattern[j + 1] == "*":
+                dp[i][j] = dp[i][j + 2] or first_match and dp[i + 1][j]
+            else:
+                dp[i][j] = first_match and dp[i + 1][j + 1]
+    return dp[0][0]
+
+# https://leetcode.com/problems/distinct-subsequences/
+# time and space O(n*m)
+def numDistinct(self, s: str, t: str) -> int:
+    memo = {}
+    def uniqueSubsequences(i: int, j: int) -> int:
+        M, N = len(s), len(t)
+        # Base case
+        if i == M or j == N or M - i < N - j:
+            return int(j == len(t))
+        # Check if the result is already cached
+        if (i, j) in memo:
+            return memo[i, j]
+        # Always make this recursive call
+        ans = uniqueSubsequences(i + 1, j)
+        # If the characters match, make the other
+        # one and add the result to "ans"
+        if s[i] == t[j]:
+            ans += uniqueSubsequences(i + 1, j + 1)
+        # Cache the answer and return
+        memo[i, j] = ans
+        return ans
+    return uniqueSubsequences(0, 0)
+# time and space O(n*m)
+def numDistinct(self, s: str, t: str) -> int:
+    M: int = len(s)
+    N: int = len(t)
+    # Dynamic Programming table
+    dp: List[List[int]] = [[0 for _ in range(N + 1)] for _ in range(M + 1)]
+
+    # Base case initialization
+    for j in range(N + 1):
+        dp[M][j] = 0
+    # Base case initialization
+    for i in range(M + 1):
+        dp[i][N] = 1
+
+    # Iterate over the strings in reverse so as to
+    # satisfy the way we've modeled our recursive solution
+    for i in range(M - 1, -1, -1):
+        for j in range(N - 1, -1, -1):
+            # Remember, we always need this result
+            dp[i][j] = dp[i + 1][j]
+            # If the characters match, we add the
+            # result of the next recursion call (in this
+            # case, the value of a cell in the dp table)
+            if s[i] == t[j]:
+                dp[i][j] += dp[i + 1][j + 1]
+    return dp[0][0]
+# time O(n*m), space=O(n)
+def numDistinct(self, s: str, t: str) -> int:
+    M, N = len(s), len(t)
+    # Dynamic Programming table
+    dp = [0 for j in range(N)]
+    # Iterate over the strings in reverse so as to
+    # satisfy the way we've modeled our recursive solution
+    for i in range(M - 1, -1, -1):
+        # At each step we start with the last value in
+        # the row which is always 1. Notice how we are
+        # starting the loop from N - 1 instead of N like
+        # in the previous solution.
+        prev = 1
+        for j in range(N - 1, -1, -1):
+            # Record the current value in this cell so that
+            # we can use it to calculate the value of dp[j - 1]
+            old_dpj = dp[j]
+            # If the characters match, we add the
+            # result of the next recursion call (in this
+            # case, the value of a cell in the dp table
+            if s[i] == t[j]:
+                dp[j] += prev
+            # Update the prev variable
+            prev = old_dpj
+    return dp[0]
+
+# https://leetcode.com/problems/expression-add-operators
+# time O(n*4^n), space O(n)
+def addOperators(self, num: 'str', target: 'int') -> 'List[str]':
+    N = len(num)
+    answers = []
+    def recurse(index, prev_operand, current_operand, value, string):
+
+        # Done processing all the digits in num
+        if index == N:
+
+            # If the final value == target expected AND
+            # no operand is left unprocessed
+            if value == target and current_operand == 0:
+                answers.append("".join(string[1:]))
+            return
+
+        # Extending the current operand by one digit
+        current_operand = current_operand*10 + int(num[index])
+        str_op = str(current_operand)
+
+        # To avoid cases where we have 1 + 05 or 1 * 05 since 05 won't be a
+        # valid operand. Hence this check
+        if current_operand > 0:
+
+            # NO OP recursion
+            recurse(index + 1, prev_operand, current_operand, value, string)
+
+        # ADDITION
+        string.append('+'); string.append(str_op)
+        recurse(index + 1, current_operand, 0, value + current_operand, string)
+        string.pop();string.pop()
+
+        # Can subtract or multiply only if there are some previous operands
+        if string:
+
+            # SUBTRACTION
+            string.append('-'); string.append(str_op)
+            recurse(index + 1, -current_operand, 0, value - current_operand, string)
+            string.pop();string.pop()
+
+            # MULTIPLICATION
+            string.append('*'); string.append(str_op)
+            recurse(index + 1, current_operand * prev_operand, 0, value - prev_operand + (current_operand * prev_operand), string)
+            string.pop();string.pop()
+    recurse(0, 0, 0, 0, [])
+    return answers

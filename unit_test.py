@@ -1,5 +1,5 @@
 import unittest
-from leetcode_misc import _all_subarrays_over_2, continuousSubarraysHeap, maxAverageRatioBrute
+from leetcode_misc import _all_subarrays_over_2, continuousSubarraysHeap, maxAverageRatioBrute, mySqrt
 from sort import quicksort, quicksort2
 
 class TestLeetcodeMisc(unittest.TestCase):
@@ -36,6 +36,25 @@ class TestSort(unittest.TestCase):
             quicksort2(a)
             self.assertEqual([1,2,4,9], a)
 
+class TestMySqrt(unittest.TestCase):
+    def test_mySqrt(self):
+        test_cases = [
+            (0, 0),
+            (1, 1),
+            (4, 2),
+            (8, 2),
+            (9, 3),
+            (16, 4),
+            (25, 5),
+            (26, 5),
+            (99, 9),
+            (100, 10),
+            (101, 10),
+            (2147395599, 46339),  # Large test case
+        ]
+        for x, expected in test_cases:
+            with self.subTest(x=x):
+                self.assertEqual(mySqrt(x), expected)
 
 if __name__ == "__main__":
     unittest.main()
