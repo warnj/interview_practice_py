@@ -1,6 +1,9 @@
 import unittest
+
+from array import ArrayPractice
 from leetcode_misc import _all_subarrays_over_2, continuousSubarraysHeap, maxAverageRatioBrute, mySqrt
 from sort import quicksort, quicksort2
+from array2d import getLargestRhombusSum
 
 class TestLeetcodeMisc(unittest.TestCase):
     def test_all_subarrays_over_2(self):
@@ -55,6 +58,46 @@ class TestMySqrt(unittest.TestCase):
         for x, expected in test_cases:
             with self.subTest(x=x):
                 self.assertEqual(mySqrt(x), expected)
+
+class ArrayTesting(unittest.TestCase):
+    a = ArrayPractice()
+
+    def testMaxSubarraySumCircular(self):
+        self.assertEqual(3, self.a.maxSubarraySumCircular([1, -2, 3, -2]))
+        self.assertEqual(10, self.a.maxSubarraySumCircular([5, -3, 5]))
+        self.assertEqual(-2, self.a.maxSubarraySumCircular([-3, -2, -3]))
+
+    def testSwapOnceIncr(self):
+        self.assertTrue(self.a.swapOnceIncr([1, 5, 10, 20]))
+        self.assertTrue(self.a.swapOnceIncr([1, 3, 900, 10]))
+        self.assertFalse(self.a.swapOnceIncr([13, 31, 30]))
+        self.assertFalse(self.a.swapOnceIncr([20, 10, 9, 8]))
+        self.assertTrue(self.a.swapOnceIncr([91, 20]))
+        self.assertTrue(self.a.swapOnceIncr([17, 18, 91, 20]))
+
+    def testConcatSum(self):
+        self.assertEqual(198, self.a.concatSum([1, 2, 3]))
+        self.assertEqual(1344, self.a.concatSum([10, 2]))
+
+    def testLongestCommonPrefix(self):
+        self.assertEqual('fl', self.a.longestCommonPrefix(["flower", "flow", "flight"]))
+
+    def testLongestCommonPrefixTwoLists(self):
+        self.assertEqual(3, self.a.longestCommonPrefixTwoLists(["flower", "flow", "finger"],['advice', 'tweet', 'finance']))
+        self.assertEqual(2, self.a.longestCommonPrefixTwoLists(["flower", "flow", "finger"],['advice', 'tweet', 'flip']))
+
+
+class TestArray2D(unittest.TestCase):
+    def test_getLargestRhombusSum(self):
+        self.assertEqual(27, getLargestRhombusSum([[1, 2, 3, 4], [6, 7, 8, 9], [4, 5, 6, 7], [9, 8, 7, 6]], 2))
+        # example: size=3
+        # [1,2,3,4,5,7]
+        # [6,7,8,9,2,4]  -> max(3+7+4+8+7+6+8+9, 4+8+5+7+6+7+9+2) -> max(52,48) -> 52
+        # [4,5,6,7,8,9]
+        # [9,8,7,6,7,1]
+        # [9,8,7,6,7,1]
+        self.assertEqual(52, getLargestRhombusSum(
+            [[1, 2, 3, 4, 5, 7], [6, 7, 8, 9, 2, 4], [4, 5, 6, 7, 8, 9], [9, 8, 7, 6, 7, 1], [9, 8, 7, 6, 7, 1]], 3))
 
 if __name__ == "__main__":
     unittest.main()
